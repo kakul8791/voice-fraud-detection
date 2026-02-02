@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import base64
 import io
 import time
@@ -23,7 +23,10 @@ app.add_middleware(
 class AudioRequest(BaseModel):
     language: str
     audio_format: str
-    audio_base64: str
+    audio_base64: str = Field(..., alias="audio_base64_format")
+
+    class Config:
+        allow_population_by_field_name = True
 
 
 @app.get("/")
