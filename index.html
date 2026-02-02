@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Audio Authenticity Detector</title>
+<style>
+body {
+  background: #0b1220;
+  font-family: Arial, sans-serif;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+.card {
+  background: #111827;
+  padding: 30px;
+  border-radius: 12px;
+  width: 350px;
+  text-align: center;
+}
+button {
+  width: 100%;
+  padding: 10px;
+  background: #22c55e;
+  border: none;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+}
+#result {
+  margin-top: 15px;
+}
+</style>
+</head>
+
+<body>
+<div class="card">
+  <h2>🎧 Audio Authenticity Detector</h2>
+
+  <input type="file" id="audioInput" accept="audio/*" />
+  <button onclick="analyze()">Analyze Audio</button>
+
+  <div id="result"></div>
+</div>
+
+<script>
+async function analyze() {
+  const fileInput = document.getElementById("audioInput");
+  const result = document.getElementById("result");
+
+  if (!fileInput.files.length) {
+    result.innerHTML = "❌ Please select an audio file";
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", fileInput.files[0]);
+
+  result.innerHTML = "⏳ Analyzing...";
+
+  try {
+    const res = await fetch("http://127.0.0.1:8000/detect", {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      result.innerHTML = "❌ " + data.error;
+      return;
+    }
+
+    
+    result.innerHTML = `
+      <b>${data.classification}</b><br>
+      Confidence: ${(data.confidence * 100).toFixed(2)}%<br>
+      Explanation: ${data.explanation.join(", ")}
+    `;
+
+  } catch (e) {
+    result.innerHTML = "❌ Server error. Is backend running?";
+  }
+}
+</script>
+</body>
+</html>
