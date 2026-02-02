@@ -1,13 +1,14 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import librosa
-import soundfile as sf
+from pydantic import BaseModel
+import base64
 import io
 import time
+import librosa
 
 from analyzer import analyze_audio
 
-app = FastAPI(title="AI Voice Fraud Detector")
+app = FastAPI(title="AI Voice Fraud Detection API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -16,36 +17,49 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# -----------------------------
+# Request Body Schema (GUVI)
+# -----------------------------
+class AudioRequest(BaseModel):
+    language: str
+    audio_format: str
+    audio_base64: str
+
+
 @app.get("/")
 def root():
     return {"status": "AI Voice Fraud Detection API Running"}
 
-@app.post("/detect")
-async def detect_audio(file: UploadFile = File(...)):
-    start = time.time()
 
+@app.post("/detect")
+async def detect_audio(req: AudioRequest):
     try:
-        audio_bytes = await file.read()
+        start = time.time()
+
+        # Decode base64 audio
+        audio_bytes = base64.b64decode(req.audio_base64)
         audio_buffer = io.BytesIO(audio_bytes)
 
+        # Load audio
         y, sr = librosa.load(audio_buffer, sr=None, mono=True)
 
+        # Analyze
         result = analyze_audio(y, sr)
 
-        classification = "AI_GENERATED" if ai_score >= 0.5 else "HUMAN"
-
+        classification = (
+            "AI_GENERATED" if result["ai_score"] >= 0.65 else "HUMAN"
+        )
 
         return {
-            "success": True,
             "classification": classification,
             "confidence": round(result["ai_score"], 2),
             "explanation": result["flags"],
-            "features": result["features"],
-            "time_taken": round(time.time() - start, 2)
+            "language": req.language,
+            "audio_format": req.audio_format,
+            "processing_time": round(time.time() - start, 2),
         }
 
     except Exception as e:
         return {
-            "success": False,
             "error": str(e)
         }
