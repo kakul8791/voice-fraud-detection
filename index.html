@@ -76,11 +76,13 @@ async function analyze() {
     }
 
     
+    
     result.innerHTML = `
       <b>${data.classification}</b><br>
       Confidence: ${(data.confidence * 100).toFixed(2)}%<br>
-      Explanation: ${data.explanation.join(", ")}
+      Time: ${data.processing_time}s
     `;
+
 
   } catch (e) {
     result.innerHTML = "❌ Server error. Is backend running?";
