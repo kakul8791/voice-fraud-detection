@@ -1,93 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>Audio Authenticity Detector</title>
-<style>
-body {
-  background: #0b1220;
-  font-family: Arial, sans-serif;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-.card {
-  background: #111827;
-  padding: 30px;
-  border-radius: 12px;
-  width: 350px;
-  text-align: center;
-}
-button {
-  width: 100%;
-  padding: 10px;
-  background: #22c55e;
-  border: none;
-  color: black;
-  font-weight: bold;
-  cursor: pointer;
-  margin-top: 10px;
-}
-#result {
-  margin-top: 15px;
-}
-</style>
-</head>
-
-<body>
-<div class="card">
-  <h2>🎧 Audio Authenticity Detector</h2>
-
-  <input type="file" id="audioInput" accept="audio/*" />
-  <button onclick="analyze()">Analyze Audio</button>
-
-  <div id="result"></div>
-</div>
-
-<script>
-async function analyze() {
-  const fileInput = document.getElementById("audioInput");
-  const result = document.getElementById("result");
-
-  if (!fileInput.files.length) {
-    result.innerHTML = "❌ Please select an audio file";
-    return;
-  }
-
-  const formData = new FormData();
-  formData.append("file", fileInput.files[0]);
-
-  result.innerHTML = "⏳ Analyzing...";
-
-  try {
-    const res = await fetch("https://voice-fraud-detection-4.onrender.com//detect", {
-
-      method: "POST",
-      body: formData
-    });
-
-    const data = await res.json();
-
-    if (!data.success) {
-      result.innerHTML = "❌ " + data.error;
-      return;
+  <meta charset="UTF-8" />
+  <title>Audio Authenticity Detector</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #0f172a, #020617);
+      color: white;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    
-    
-    result.innerHTML = `
-      <b>${data.classification}</b><br>
-      Confidence: ${(data.confidence * 100).toFixed(2)}%<br>
-      Time: ${data.processing_time}s
-    `;
+    .card {
+      background: #020617;
+      border-radius: 12px;
+      padding: 30px;
+      width: 320px;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(0,0,0,0.6);
+    }
 
+    h2 {
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
 
-  } catch (e) {
-    result.innerHTML = "❌ Server error. Is backend running?";
-  }
-}
-</script>
+    input[type="file"] {
+      margin-bottom: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      background: #22c55e;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #16a34a;
+    }
+
+    #result {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+
+    .error {
+      color: #ef4444;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>🎧 Audio Authenticity Detector</h2>
+
+    <input type="file" id="audioFile" accept="audio/*" />
+    <button onclick="analyze()">Analyze Audio</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    async function analyze() {
+      const fileInput = document.getElementById("audioFile");
+      const result = document.getElementById("result");
+
+      if (!fileInput.files.length) {
+        result.innerHTML = "<span class='error'>Please select an audio file</span>";
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+
+      result.innerHTML = "⏳ Analyzing...";
+
+      try {
+        const response = await fetch(
+          "https://voice-fraud-detection-4.onrender.com/detect",
+          {
+            method: "POST",
+            headers: {
+              "x-api-key": "GUVI-VOICE-2026"
+            },
+            body: formData
+          }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.detail || "Server error");
+        }
+
+        result.innerHTML = `
+          <b>${data.classification}</b><br>
+          Confidence: ${(data.confidence * 100).toFixed(2)}%<br>
+          Time: ${data.processing_time}s
+        `;
+      } catch (err) {
+        result.innerHTML = `<span class='error'>❌ ${err.message}</span>`;
+      }
+    }
+  </script>
+
 </body>
 </html>
