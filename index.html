@@ -62,7 +62,8 @@ async function analyze() {
   result.innerHTML = "⏳ Analyzing...";
 
   try {
-    const res = await fetch("http://127.0.0.1:8000/detect", {
+    const res = await fetch("https://voice-fraud-detection-4.onrender.com//detect", {
+
       method: "POST",
       body: formData
     });
